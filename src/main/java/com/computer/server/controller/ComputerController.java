@@ -13,10 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@CrossOrigin(origins = "*")
+
 @Slf4j
 @RestController
 @RequestMapping("computer")
+//@CrossOrigin(origins = "*")
 public class ComputerController {
 
     @Autowired

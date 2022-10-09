@@ -31,11 +31,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         this.objectMapper = objectMapper;
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/h2-console/**","/**");  // --> 추가
-    }
-
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 

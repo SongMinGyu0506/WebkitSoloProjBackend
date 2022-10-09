@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 @Slf4j
 @RestController
 @RequestMapping("/auth")

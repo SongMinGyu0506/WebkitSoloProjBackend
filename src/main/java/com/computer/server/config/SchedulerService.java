@@ -20,6 +20,7 @@ public class SchedulerService {
     @Async
     public void autoCrawling() {
         log.info("Crawling start");
+        crawlingService.crawling_init();
         crawlingService.danawa_save("SSD","2.5SSD");
         crawlingService.danawa_save("VGA","GTX1650");
         crawlingService.danawa_save("VGA","GTX1660");

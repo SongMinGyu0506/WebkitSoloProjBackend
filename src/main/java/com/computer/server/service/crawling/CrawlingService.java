@@ -31,10 +31,7 @@ public class CrawlingService {
         }
     }
 
-    public void happy_save(String type, String keyword) {
-
-    }
-    public void compuzone_save(String type, String keyword) {
-
+    public void crawling_init() {
+        computerRepository.deleteAllInBatch();
     }
 }
