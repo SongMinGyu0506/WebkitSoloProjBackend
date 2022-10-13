@@ -68,7 +68,7 @@ public class CompareService {
             }
 
             objectSort(result);
-            return result.subList(0,5);
+            return result.subList(0,10);
         } catch (Exception e) {
             log.error(e.getMessage());
             return null;

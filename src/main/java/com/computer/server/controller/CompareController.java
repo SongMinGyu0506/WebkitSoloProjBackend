@@ -56,7 +56,7 @@ public class CompareController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    @GetMapping("/recommand-read")
+    @PostMapping("/recommand-read")
     public ResponseEntity<?> readRecommendData(@AuthenticationPrincipal int id, @RequestBody ComputerDTO computerDTO) {
         try{
             List<ComputerRecommendDTO> readRecommendList = compareService.readRecommend(computerDTO.getSearchTag());

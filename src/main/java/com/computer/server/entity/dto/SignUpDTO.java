@@ -32,6 +32,7 @@ public class SignUpDTO {
                 .isSecession(false)
                 .isAdmin(false)
                 .password(signUpDTO.getPassword())
+                .name(signUpDTO.getName())
                 .email(signUpDTO.getEmail())
                 .build();
         return user;

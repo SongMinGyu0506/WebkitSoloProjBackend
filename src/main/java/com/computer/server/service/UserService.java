@@ -1,5 +1,6 @@
 package com.computer.server.service;
 
+import com.computer.server.config.EncryptConfig;
 import com.computer.server.entity.domain.UserEntity;
 import com.computer.server.repository.UserEntityRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,8 @@ import java.util.NoSuchElementException;
 public class UserService {
     @Autowired
     UserEntityRepository userRepository;
+    @Autowired
+    EncryptConfig encryptConfig;
 
     public UserEntity create(final UserEntity userEntity) {
         if(userEntity == null || userEntity.getEmail() == null) {
@@ -36,13 +39,24 @@ public class UserService {
         }
         return null;
     }
-    public UserEntity update(final UserEntity userEntity) {
-        if(userRepository.existsById(Integer.toString(userEntity.getId()))) {
-            userRepository.save(userEntity);
+    public UserEntity update(final UserEntity userEntity, int id) {
+        log.info(userEntity.toString());
+        UserEntity temp = UserEntity.builder()
+                .computers(userEntity.getComputers())
+                .isSecession(userEntity.getIsSecession())
+                .isAdmin(userEntity.getIsAdmin())
+                .userDate(userEntity.getUserDate())
+                .email(userEntity.getEmail())
+                .password(encryptConfig.makeMD5(userEntity.getPassword()))
+                .name(userEntity.getName())
+                .id(id)
+                .build();
+        if(userRepository.existsById(id)) {
+            userRepository.save(temp);
         } else {
             throw new RuntimeException("Unknown id");
         }
-        return userRepository.findById(Integer.toString(userEntity.getId())).get();
+        return userRepository.findById(id);
     }
 
 }

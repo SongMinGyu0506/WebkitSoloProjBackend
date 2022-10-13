@@ -1,11 +1,9 @@
 package com.computer.server.controller;
 
+import com.computer.server.config.EncryptConfig;
 import com.computer.server.entity.domain.AccountLog;
 import com.computer.server.entity.domain.UserEntity;
-import com.computer.server.entity.dto.AccountLogDTO;
-import com.computer.server.entity.dto.LoginDTO;
-import com.computer.server.entity.dto.ResponseDTO;
-import com.computer.server.entity.dto.SignUpDTO;
+import com.computer.server.entity.dto.*;
 import com.computer.server.security.TokenProvider;
 import com.computer.server.service.AccountLogService;
 import com.computer.server.service.UserService;
@@ -32,13 +30,17 @@ public class UserController {
     private UserService userService;
     @Autowired
     private TokenProvider tokenProvider;
+
+    @Autowired
+    private EncryptConfig encryptConfig;
+
     @PostMapping("/signup")
     public ResponseEntity<?>registerUser(@RequestBody SignUpDTO userDTO){
         try {
             UserEntity user = UserEntity.builder()
                     .email(userDTO.getEmail())
                     .name(userDTO.getName())
-                    .password(userDTO.getPassword())
+                    .password(encryptConfig.makeMD5(userDTO.getPassword()))
                     .userDate(new Date())
                     .isAdmin(false)
                     .isSecession(false)
@@ -69,7 +71,8 @@ public class UserController {
     }
     @PostMapping("/signin")
     public ResponseEntity<?>authenticate(@RequestBody LoginDTO userDTO){
-        UserEntity user = userService.getByCredentials(userDTO.getEmail(),userDTO.getPassword());
+        log.info("Encrypt: "+encryptConfig.makeMD5(userDTO.getPassword()));
+        UserEntity user = userService.getByCredentials(userDTO.getEmail(), encryptConfig.makeMD5(userDTO.getPassword()));
         if(user != null) {
             final String token = tokenProvider.create(user);
             final LoginDTO responseUserDTO = LoginDTO.builder()
@@ -94,19 +97,48 @@ public class UserController {
     @GetMapping("/modify")
     public ResponseEntity<?> modifyUser(@AuthenticationPrincipal int id) {
         UserEntity userEntity = userService.getById(id);
-        SignUpDTO userDTO = new SignUpDTO(userEntity);
+        log.info("TEST : "+userEntity.toString());
+        //SignUpDTO userDTO = new SignUpDTO(userEntity);
+        UserDTO userDTO = new UserDTO(userEntity);
         return ResponseEntity.ok().body(userDTO);
     }
     @PutMapping("/modify")
-    public ResponseEntity<?> submitUserModify(@AuthenticationPrincipal String userId,@RequestBody SignUpDTO dto) {
-        UserEntity userEntity = SignUpDTO.toUserEntity(dto);
-        UserEntity entity = userService.update(userEntity);
-        SignUpDTO dtos = new SignUpDTO(entity);
-        List<SignUpDTO> resList = new ArrayList<>();
+    public ResponseEntity<?> submitUserModify(@AuthenticationPrincipal int id,@RequestBody UserDTO dto) {
+        log.info("Client DTO : "+dto.toString());
+        UserEntity userEntity = UserDTO.toUserEntity(dto);
+        log.info("Entity : "+userEntity.toString());
+        UserEntity entity = userService.update(userEntity,id);
+        UserDTO dtos = new UserDTO(entity);
+        List<UserDTO> resList = new ArrayList<>();
         resList.add(dtos);
-        ResponseDTO response = ResponseDTO.<SignUpDTO>builder().data(resList).build();
+
+        final AccountLogDTO accountLog = AccountLogDTO.builder()
+                .loginDate(new Date())
+                .loginEmail(entity.getEmail())
+                .loginId(entity.getId())
+                .loginType("USER-UPDATE")
+                .build();
+
+        AccountLog toAccountLog = AccountLogDTO.toAccountLog(accountLog);
+        accountLogService.save(toAccountLog);
+        ResponseDTO response = ResponseDTO.<UserDTO>builder().data(resList).build();
         return ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("/signout")
+    public ResponseEntity<?> signoutUser(@AuthenticationPrincipal int id) {
+        UserEntity userEntity = userService.getById(id);
+        final AccountLogDTO accountLog = AccountLogDTO.builder()
+                .loginDate(new Date())
+                .loginEmail(userEntity.getEmail())
+                .loginId(userEntity.getId())
+                .loginType("LOG-OUT")
+                .build();
+        AccountLog toAccountLog = AccountLogDTO.toAccountLog(accountLog);
+        accountLogService.save(toAccountLog);
+        return ResponseEntity.ok().body("OK");
+    }
+
     @GetMapping("/log")
     public ResponseEntity<?> readAccountLog(@AuthenticationPrincipal int id) {
         try {
